@@ -8,7 +8,7 @@ export function convertDate(excelDateValue: number) {
 
 export const cleanString = (str: string) => {
   if (str.includes('/')) {
-    str = str.replace(/\//g, ' ')
+    return str.replace(/\//g, ' ')
   }
   return str
 }

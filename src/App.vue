@@ -4,12 +4,12 @@
     <div class="left-col">
       <div class="btn-group">
         <UploadButton
-          v-for="button in uploadButtons"
-          :key="`upload-${button.id}-btn`"
-          :id="button.id"
-          @fileData="button.handler"
-          @clearData="button.clearHandler"
-          :class="button.disabled ? 'disabled' : ''"
+          v-for="key in Object.keys(uploadButtons)"
+          :key="`upload-${key}-btn`"
+          :id="key"
+          @fileData="uploadButtons[key].handler"
+          @clearData="uploadButtons[key].clearHandler"
+          :class="{ disabled: uploadButtons[key].disabled }"
         />
       </div>
     </div>
@@ -31,45 +31,64 @@ import { storeToRefs } from 'pinia'
 import { UPLOADHEADER } from './utils/uta.constants'
 
 import { useUTAStore } from './stores/datauta'
-import { use225Store } from './stores/data225'
-import { use12Store } from './stores/data12'
+import { useCashSalesDataStore } from './stores/cashSalesData'
+import { useCustomerDepositDataStore } from './stores/customerDepositData'
 
 import UploadButton from './components/UploadButton.vue'
+import { computed, ref } from 'vue'
+import type { Ref } from 'vue'
 
 const utaStore = useUTAStore()
 const { loadUTA, clearUTA } = utaStore
-const { hasDataUTA, uploadRows } = storeToRefs(utaStore)
+const { hasDataUTA, uploadRows, getValidRowsUTA } = storeToRefs(utaStore)
 
-const store225 = use225Store()
-const { load225, clear225 } = store225
+const cashSalesStore = useCashSalesDataStore()
+const { loadCashSalesData, hasCashSalesData, clearCashSalesData } = cashSalesStore
 // const {  } = storeToRefs(store225)
 
-const store12 = use12Store()
-const { load12, clear12 } = store12
+const customerDepositDataStore = useCustomerDepositDataStore()
+const { loadCustomerDepositData, hasCustomerDepositData, clearCustomerDepositData } =
+  customerDepositDataStore
 // const { getValidRows } = storeToRefs(utaStore)
 
-const uploadButtons = [
-  { id: '225', handler: handle225, clearHandler: clear225, disabled: false },
-  { id: '12', handler: handle12, clearHandler: clear12, disabled: true },
-  { id: 'UTA', handler: handleUTA, clearHandler: clearUTA, disabled: true },
-]
+interface UploadButton {
+  [name: string]: {
+    handler: (data: Array<string>) => void
+    clearHandler: () => void
+    disabled: boolean
+  }
+}
+
+const uploadButtons: Ref<UploadButton> = ref({
+  'cash-sales': {
+    handler: handleCashSalesData,
+    clearHandler: clearCashSalesData,
+    disabled: false,
+  },
+  'customer-deposits': {
+    handler: handleCustomerDepositData,
+    clearHandler: clearCustomerDepositData,
+    disabled: true,
+  },
+  'uta-report': {
+    handler: handleUTA,
+    clearHandler: clearUTA,
+    disabled: true,
+  },
+})
+
+const updateCustomerDepositButton = computed(() => {})
 
 function handleUTA(data: Array<string>) {
   loadUTA(data)
 }
 
-function handle225(data: Array<string>) {
-  uploadButtons
-    .filter((button) => button.id === '12')
-    .forEach((button) => (button.disabled = false))
-  load225(data)
+function handleCashSalesData(data: Array<string>) {
+  loadCashSalesData(data)
 }
 
-function handle12(data: Array<string>) {
-  uploadButtons
-    .filter((button) => button.id === 'UTA')
-    .forEach((button) => (button.disabled = false))
-  load12(data)
+function handleCustomerDepositData(data: Array<string>) {
+  loadCustomerDepositData(data)
 }
 </script>
 

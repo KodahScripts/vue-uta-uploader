@@ -1,19 +1,24 @@
 <template>
   <div v-if="!hasData">
     <input :id="id" type="file" accept=".xlsx, .xls" @change="handleUpload" />
-    <label :for="id" class="missing-data">Upload {{ id }}</label>
+    <label :for="id" class="missing-data">Upload {{ idString }}</label>
   </div>
   <div v-else>
-    <label :for="id" @click="handleClear" class="data-loaded">Clear {{ id }}</label>
+    <label :for="id" @click="handleClear" class="data-loaded">Clear {{ idString }}</label>
   </div>
 </template>
 <script setup lang="ts">
+import { computed } from 'vue'
 import { ref } from 'vue'
 import { read, utils } from 'xlsx'
 
-defineProps<{
+const props = defineProps<{
   id: string
 }>()
+
+const idString = computed(() => {
+  return props.id.replace(/-/g, ' ')
+})
 
 const hasData = ref(false)
 
@@ -50,6 +55,7 @@ label {
   text-align: center;
   padding: 1rem 2rem;
   cursor: pointer;
+  text-transform: capitalize;
 }
 .missing-data {
   border: 1px solid grey;

@@ -1,15 +1,14 @@
 import { computed, ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
-import { use225Store } from './data225'
-
-import { ACCOUNTS, getMerchantType } from '@/utils/bmw.constants'
-import { COLUMN } from '@/utils/uta.constants'
+import { useCashSalesDataStore } from './cashSalesData'
+import { COLUMN, getMerchantType, MERCHANTS } from '@/utils/uta.constants'
 import { convertDate, cleanString } from '@/utils/excel.functions'
 
 export const useUTAStore = defineStore('datauta', () => {
   const dataUTA: Ref<Array<string> | null> = ref(null)
-  const uploadRows: Ref<Array<string | number | ACCOUNTS>[]> = ref([])
-  const { getControlValue } = use225Store()
+  const uploadRows: Ref<Array<string | number>[]> = ref([])
+  const currentStore: Ref<string> = ref('BMW')
+  const { getControlValue } = useCashSalesDataStore()
 
   const loadUTA = (data: Array<string>) => {
     dataUTA.value = data
@@ -28,7 +27,7 @@ export const useUTAStore = defineStore('datauta', () => {
       const arr: Array<Array<string | number>> = []
       if (index > 0) {
         const date = convertDate(Number(row[COLUMN.DATE]))
-        const merch = getMerchantType(String(row[COLUMN.MERCHANT]))
+        const merch = getMerchantType(String(row[COLUMN.MERCHANT]), currentStore.value)
         const utaAmt = Number(row[COLUMN.TOTAL_AMOUNT])
         const chk = Number(row[COLUMN.CHECK_NUMBER])
         const ref = `UTA${date}${merch.code}`
@@ -38,7 +37,7 @@ export const useUTAStore = defineStore('datauta', () => {
         if (allCtrls.length > 0) {
           allCtrls.forEach((cont) => {
             const c = Number(cont)
-            if (merch.code === 'F') {
+            if (merch.code === MERCHANTS.FIXED.CODE) {
               const val = getControlValue(c)
               arr.push([ref, ref, merch.acct, Number(val), c, `CHK#${chk}`])
             } else {
@@ -56,5 +55,5 @@ export const useUTAStore = defineStore('datauta', () => {
     dataUTA.value = null
   }
 
-  return { loadUTA, uploadRows, hasDataUTA, getValidRowsUTA, clearUTA }
+  return { loadUTA, uploadRows, currentStore, hasDataUTA, getValidRowsUTA, clearUTA }
 })
